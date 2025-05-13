@@ -31,8 +31,7 @@ const Header: React.FC = () => {
     <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b py-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-primary">ActiviBot</span>
-          <span className="bg-secondary text-secondary-foreground text-xs px-2 py-0.5 rounded-md">
+          <span className="text-2xl font-bold text-primary">
             Бета
           </span>
         </div>

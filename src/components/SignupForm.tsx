@@ -51,15 +51,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      await registerUser(data);
-      toast("Регистрация успешна", {
-        description: "Добро пожаловать в систему!",
+      await registerUser({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password
       });
+      
+      toast("Регистрация успешна", {
+        description: "Добро пожаловать в систему!"
+      });
+      
       onSuccess();
     } catch (error) {
       toast("Ошибка регистрации", {
-        description: "Проверьте введенные данные и попробуйте снова",
-        variant: "destructive",
+        description: "Проверьте введенные данные и попробуйте снова"
       });
     }
   };

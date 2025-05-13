@@ -132,6 +132,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: userData.email,
             phone: userData.phone,
             enrolledClasses: [],
+            attendanceRecords: [],
           };
 
           // Add to users array
