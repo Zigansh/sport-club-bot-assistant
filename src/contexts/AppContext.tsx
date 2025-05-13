@@ -132,7 +132,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: userData.email,
             phone: userData.phone,
             enrolledClasses: [],
-            attendanceRecords: [],
+            attendanceRecords: {}, // Fix: Initialize as empty object instead of array
           };
 
           // Add to users array
