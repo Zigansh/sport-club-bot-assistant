@@ -4,16 +4,27 @@ import { Activity, Class, Review, User, Trainer } from "../data/types";
 import { classes as initialClasses, reviews as initialReviews, currentUser as initialUser, trainers as initialTrainers } from "../data/mockData";
 import { toast } from "../components/ui/sonner";
 
+interface RegisterUserData {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+}
+
 interface AppContextType {
   classes: Class[];
   reviews: Review[];
   currentUser: User;
   trainers: Trainer[];
+  isLoggedIn: boolean;
   addReview: (classId: string, rating: number, comment: string) => void;
   enrollInClass: (classId: string) => void;
   cancelEnrollment: (classId: string) => void;
   getClassNotifications: () => Class[];
   dismissNotification: (classId: string) => void;
+  registerUser: (userData: RegisterUserData) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -23,6 +34,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [currentUser, setCurrentUser] = useState<User>(initialUser);
   const [trainers] = useState<Trainer[]>(initialTrainers);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [users, setUsers] = useState<User[]>([initialUser]);
   
   const addReview = (classId: string, rating: number, comment: string) => {
     const newReview: Review = {
@@ -101,17 +114,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     ));
   };
   
+  const registerUser = async (userData: RegisterUserData): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          // Check if email already exists
+          const emailExists = users.some(user => user.email === userData.email);
+          if (emailExists) {
+            reject(new Error("Пользователь с таким email уже существует"));
+            return;
+          }
+
+          // Create new user
+          const newUser: User = {
+            id: `user-${Date.now()}`,
+            name: userData.name,
+            email: userData.email,
+            phone: userData.phone,
+            enrolledClasses: [],
+          };
+
+          // Add to users array
+          setUsers([...users, newUser]);
+          
+          // Auto login
+          setCurrentUser(newUser);
+          setIsLoggedIn(true);
+          
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      }, 1000); // Simulate network delay
+    });
+  };
+
+  const login = async (email: string, password: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Find user by email
+        const user = users.find(u => u.email === email);
+        
+        if (user) {
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+          resolve();
+        } else {
+          reject(new Error("Неверный email или пароль"));
+        }
+      }, 1000); // Simulate network delay
+    });
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+  };
+  
   return (
     <AppContext.Provider value={{ 
       classes, 
       reviews, 
       currentUser, 
       trainers,
+      isLoggedIn,
       addReview, 
       enrollInClass, 
       cancelEnrollment,
       getClassNotifications,
-      dismissNotification
+      dismissNotification,
+      registerUser,
+      login,
+      logout
     }}>
       {children}
     </AppContext.Provider>

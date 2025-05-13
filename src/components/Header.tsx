@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Bell } from "lucide-react";
+import React, { useState } from "react";
+import { Bell, LogIn, UserPlus } from "lucide-react";
 import { useApp } from "../contexts/AppContext";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +10,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import SignupForm from "./SignupForm";
 
 const Header: React.FC = () => {
-  const { getClassNotifications, dismissNotification } = useApp();
+  const { getClassNotifications, dismissNotification, currentUser, isLoggedIn } = useApp();
   const navigate = useNavigate();
+  const [signupOpen, setSignupOpen] = useState(false);
   
   const notifications = getClassNotifications();
   
@@ -88,17 +98,44 @@ const Header: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden md:flex items-center gap-2"
-            onClick={() => navigate("/profile")}
-          >
-            <span>Анна С.</span>
-            <span className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center text-xs text-primary font-medium">
-              АС
-            </span>
-          </Button>
+          {isLoggedIn ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden md:flex items-center gap-2"
+              onClick={() => navigate("/profile")}
+            >
+              <span>{currentUser.name.split(' ')[0]}</span>
+              <span className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center text-xs text-primary font-medium">
+                {currentUser.name.split(' ').map(part => part[0]).join('')}
+              </span>
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    <span>Регистрация</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Регистрация</DialogTitle>
+                    <DialogDescription>
+                      Создайте учетную запись для доступа к секциям и занятиям
+                    </DialogDescription>
+                  </DialogHeader>
+                  <SignupForm onSuccess={() => setSignupOpen(false)} />
+                </DialogContent>
+              </Dialog>
+              
+              <Button variant="default" size="sm" className="hidden md:flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                <span>Вход</span>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>
