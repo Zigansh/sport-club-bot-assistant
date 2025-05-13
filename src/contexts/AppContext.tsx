@@ -1,0 +1,127 @@
+
+import React, { createContext, useContext, useState } from "react";
+import { Activity, Class, Review, User, Trainer } from "../data/types";
+import { classes as initialClasses, reviews as initialReviews, currentUser as initialUser, trainers as initialTrainers } from "../data/mockData";
+import { toast } from "../components/ui/sonner";
+
+interface AppContextType {
+  classes: Class[];
+  reviews: Review[];
+  currentUser: User;
+  trainers: Trainer[];
+  addReview: (classId: string, rating: number, comment: string) => void;
+  enrollInClass: (classId: string) => void;
+  cancelEnrollment: (classId: string) => void;
+  getClassNotifications: () => Class[];
+  dismissNotification: (classId: string) => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [classes, setClasses] = useState<Class[]>(initialClasses);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+  const [currentUser, setCurrentUser] = useState<User>(initialUser);
+  const [trainers] = useState<Trainer[]>(initialTrainers);
+  
+  const addReview = (classId: string, rating: number, comment: string) => {
+    const newReview: Review = {
+      id: `review-${Date.now()}`,
+      classId,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      rating,
+      comment,
+      date: new Date().toISOString().split('T')[0]
+    };
+    
+    setReviews([...reviews, newReview]);
+    toast("Отзыв добавлен", {
+      description: "Спасибо за ваш отзыв!",
+    });
+  };
+  
+  const enrollInClass = (classId: string) => {
+    if (currentUser.enrolledClasses.includes(classId)) {
+      toast("Вы уже записаны на это занятие", {
+        description: "Проверьте свое расписание",
+      });
+      return;
+    }
+    
+    setCurrentUser({
+      ...currentUser,
+      enrolledClasses: [...currentUser.enrolledClasses, classId]
+    });
+    
+    setClasses(classes.map(c => 
+      c.id === classId 
+        ? { ...c, currentParticipants: c.currentParticipants + 1 } 
+        : c
+    ));
+    
+    toast("Успешная запись", {
+      description: "Вы успешно записаны на занятие",
+    });
+  };
+  
+  const cancelEnrollment = (classId: string) => {
+    if (!currentUser.enrolledClasses.includes(classId)) {
+      toast("Вы не записаны на это занятие", {
+        description: "Проверьте свое расписание",
+      });
+      return;
+    }
+    
+    setCurrentUser({
+      ...currentUser,
+      enrolledClasses: currentUser.enrolledClasses.filter(id => id !== classId)
+    });
+    
+    setClasses(classes.map(c => 
+      c.id === classId 
+        ? { ...c, currentParticipants: c.currentParticipants - 1 } 
+        : c
+    ));
+    
+    toast("Запись отменена", {
+      description: "Вы отменили запись на занятие",
+    });
+  };
+  
+  const getClassNotifications = () => {
+    return classes.filter(c => c.isChanged);
+  };
+  
+  const dismissNotification = (classId: string) => {
+    setClasses(classes.map(c => 
+      c.id === classId 
+        ? { ...c, isChanged: false } 
+        : c
+    ));
+  };
+  
+  return (
+    <AppContext.Provider value={{ 
+      classes, 
+      reviews, 
+      currentUser, 
+      trainers,
+      addReview, 
+      enrollInClass, 
+      cancelEnrollment,
+      getClassNotifications,
+      dismissNotification
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (context === undefined) {
+    throw new Error("useApp must be used within an AppProvider");
+  }
+  return context;
+};
