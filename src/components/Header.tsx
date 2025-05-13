@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Bell, LogIn, UserPlus, Send } from "lucide-react";
+import { Bell, LogIn, UserPlus, LogOut } from "lucide-react";
 import { useApp } from "../contexts/AppContext";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
@@ -16,16 +16,26 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import SignupForm from "./SignupForm";
 import LoginForm from "./LoginForm";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Header: React.FC = () => {
-  const { getClassNotifications, dismissNotification, currentUser, isLoggedIn } = useApp();
+  const { getClassNotifications, dismissNotification, currentUser, isLoggedIn, logout } = useApp();
   const navigate = useNavigate();
-  const [signupOpen, setSignupOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
+  const [signupDialogOpen, setSignupDialogOpen] = useState(false);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   
   const notifications = getClassNotifications();
   
@@ -54,6 +64,30 @@ const Header: React.FC = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          {!isLoggedIn && (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2 bg-transparent border-white text-white hover:bg-white/20"
+                onClick={() => setSignupDialogOpen(true)}
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>Регистрация</span>
+              </Button>
+              
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="flex items-center gap-2 bg-white text-[#1E94D2] hover:bg-white/90"
+                onClick={() => setLoginDialogOpen(true)}
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Вход</span>
+              </Button>
+            </div>
+          )}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="relative bg-transparent border-white text-white hover:bg-white/20">
@@ -99,59 +133,65 @@ const Header: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {isLoggedIn ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden md:flex items-center gap-2 text-white hover:bg-white/20"
-              onClick={() => navigate("/profile")}
-            >
-              <span>{currentUser.name.split(' ')[0]}</span>
-              <span className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-xs text-white font-medium">
-                {currentUser.name.split(' ').map(part => part[0]).join('')}
-              </span>
-            </Button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2 bg-transparent border-white text-white hover:bg-white/20">
-                    <UserPlus className="h-4 w-4" />
-                    <span>Регистрация</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Регистрация</DialogTitle>
-                    <DialogDescription>
-                      Создайте учетную запись для доступа к секциям и занятиям
-                    </DialogDescription>
-                  </DialogHeader>
-                  <SignupForm onSuccess={() => setSignupOpen(false)} />
-                </DialogContent>
-              </Dialog>
-              
-              <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="default" size="sm" className="hidden md:flex items-center gap-2 bg-white text-[#1E94D2] hover:bg-white/90">
-                    <LogIn className="h-4 w-4" />
-                    <span>Вход</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Вход</DialogTitle>
-                    <DialogDescription>
-                      Войдите в свою учетную запись
-                    </DialogDescription>
-                  </DialogHeader>
-                  <LoginForm onSuccess={() => setLoginOpen(false)} />
-                </DialogContent>
-              </Dialog>
-            </div>
+          {isLoggedIn && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2 text-white hover:bg-white/20"
+                >
+                  <span>{currentUser.name.split(' ')[0]}</span>
+                  <span className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-xs text-white font-medium">
+                    {currentUser.name.split(' ').map(part => part[0]).join('')}
+                  </span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Выход из аккаунта</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Вы действительно хотите выйти из аккаунта?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction onClick={logout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Выйти
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
+      
+      {/* Registration Dialog */}
+      <Dialog open={signupDialogOpen} onOpenChange={setSignupDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Регистрация</DialogTitle>
+            <DialogDescription>
+              Создайте учетную запись для доступа к секциям и занятиям
+            </DialogDescription>
+          </DialogHeader>
+          <SignupForm onSuccess={() => setSignupDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Login Dialog */}
+      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Вход</DialogTitle>
+            <DialogDescription>
+              Войдите в свою учетную запись
+            </DialogDescription>
+          </DialogHeader>
+          <LoginForm onSuccess={() => setLoginDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

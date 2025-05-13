@@ -13,6 +13,7 @@ import Trainers from "./pages/Trainers";
 import Analytics from "./pages/Analytics";
 import ActivityDetail from "./pages/ActivityDetail";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/trainers" element={<Trainers />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/:activityType" element={<ActivityDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
